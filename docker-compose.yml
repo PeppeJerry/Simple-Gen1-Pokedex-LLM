@@ -1,0 +1,18 @@
+services:
+  app:
+    build: ./backend
+    container_name: pokedex-app
+    ports:
+      - "8000:8000"
+    working_dir: /project/backend
+    volumes:
+      - ./backend:/project/backend
+      - ./frontend:/project/frontend
+      - ./.env:/project/.env
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434/ # Required for local ollama
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # Required for local ollama

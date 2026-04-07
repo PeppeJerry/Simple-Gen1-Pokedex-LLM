@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pokédex</title>
+  <link rel="icon" type="image/x-icon" href="/static/favicon.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <header class="bg-red-600 text-white py-4 px-6 shadow">
+    <div class="max-w-6xl mx-auto text-center">
+      <h1 class="text-2xl font-bold tracking-wide">Pokédex</h1>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-3 py-4 space-y-4">
+
+    <!-- Filters -->
+    <section class="bg-white rounded-xl shadow p-4">
+      <h2 class="text-xs font-semibold text-gray-500 uppercase mb-3">Filters</h2>
+      <div class="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-end">
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs text-gray-500" for="type1">Type 1</label>
+          <select id="type1" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-red-400 w-full">
+            <option value="">All</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-xs text-gray-500" for="type2">Type 2</label>
+          <select id="type2" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-red-400 w-full">
+            <option value="">All</option>
+          </select>
+        </div>
+
+        <div class="col-span-2 sm:col-span-1 flex items-center gap-2 py-1">
+          <input type="checkbox" id="heavy" class="w-4 h-4 accent-red-600" />
+          <label for="heavy" class="text-sm text-gray-700">Only &gt; 100 kg</label>
+        </div>
+
+        <div class="col-span-2 sm:col-span-1 flex gap-2">
+          <button onclick="applyFilters()"
+            class="flex-1 sm:flex-none bg-red-600 hover:bg-red-700 active:scale-95 text-white text-sm font-medium px-5 py-2 rounded-lg transition">
+            Apply
+          </button>
+          <button onclick="restoreAll()"
+            class="flex-1 sm:flex-none border border-gray-300 hover:bg-gray-50 active:scale-95 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition">
+            Restore deleted
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Statistics -->
+    <section class="bg-white rounded-xl shadow p-4 space-y-4">
+      <h2 class="text-xs font-semibold text-gray-500 uppercase">Statistics</h2>
+
+      <!-- Metric cards -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="bg-gray-50 rounded-lg p-3 text-center">
+          <p class="text-xs text-gray-500 mb-1">Total</p>
+          <p id="stat-total" class="text-xl font-semibold text-gray-800">—</p>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-3 text-center">
+          <p class="text-xs text-gray-500 mb-1">Avg weight</p>
+          <p id="stat-weight" class="text-xl font-semibold text-gray-800">—</p>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-3 text-center">
+          <p class="text-xs text-gray-500 mb-1">Avg height</p>
+          <p id="stat-height" class="text-xl font-semibold text-gray-800">—</p>
+        </div>
+      </div>
+
+      <!-- Top experience -->
+      <div>
+        <p class="text-xs text-gray-500 mb-2">Highest base experience</p>
+        <div id="stat-top" class="bg-amber-50 border border-amber-100 rounded-lg p-3">
+          <p class="text-sm text-gray-400">Loading...</p>
+        </div>
+      </div>
+
+      <!-- Types count -->
+      <div>
+        <p class="text-xs text-gray-500 mb-2">Pokémon per type</p>
+        <div id="stat-types" class="flex flex-wrap gap-2">
+          <p class="text-sm text-gray-400">Loading...</p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Table (desktop) / Cards (mobile) -->
+    <section class="bg-white rounded-xl shadow overflow-hidden">
+
+      <!-- Desktop table -->
+      <div class="hidden sm:block overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 border-b">
+            <tr>
+              <th class="px-4 py-3 text-left text-gray-500 font-medium">Sprite</th>
+              <th class="px-4 py-3 text-left text-gray-500 font-medium">Name</th>
+              <th class="px-4 py-3 text-left text-gray-500 font-medium">Types</th>
+              <th class="px-4 py-3 text-left text-gray-500 font-medium">Weight (kg)</th>
+              <th class="px-4 py-3 text-left text-gray-500 font-medium">Height (m)</th>
+              <th class="px-4 py-3 text-left text-gray-500 font-medium">Base exp.</th>
+              <th class="px-4 py-3"></th>
+            </tr>
+          </thead>
+          <tbody id="pokemon-tbody">
+            <tr><td colspan="7" class="text-center py-10 text-gray-400">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile cards -->
+      <div id="pokemon-cards" class="sm:hidden divide-y divide-gray-100">
+        <div class="text-center py-10 text-gray-400 text-sm">Loading...</div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-between px-4 py-3 border-t bg-gray-50 gap-2">
+        <span id="pagination-info" class="text-xs text-gray-500 shrink-0"></span>
+        <div class="flex gap-2">
+          <button id="btn-prev" onclick="changePage(-1)"
+            class="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition">
+            ← Prev
+          </button>
+          <button id="btn-next" onclick="changePage(1)"
+            class="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition">
+            Next →
+          </button>
+        </div>
+      </div>
+
+    </section>
+      <div id="pokemon-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closePokemonModal()"></div>
+
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden flex flex-col">
+
+        <div class="flex justify-between items-center p-4 border-b bg-gray-50">
+          <h3 id="modal-title" class="text-lg font-bold capitalize text-gray-800"></h3>
+          <button onclick="closePokemonModal()" class="text-gray-400 hover:text-red-600 active:scale-95 transition">
+            <svg class="w-6 h-6" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="p-6 flex flex-col items-center gap-4">
+          <img id="modal-sprite" src="" alt="" class="w-32 h-32 object-contain drop-shadow-lg" />
+          <div class="w-full bg-gray-50/50 rounded-lg p-4 min-h-[120px] border border-gray-100">
+            <p id="modal-description" class="text-sm text-gray-700 leading-relaxed italic"></p>
+            <div id="modal-loading" class="text-xs text-amber-600 font-medium mt-2 hidden text-center animate-pulse">
+              Generating description...
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+  </main>
+
+  <script src="/static/index.js"></script>
+
+</body>
+</html>
